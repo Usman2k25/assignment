@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- allowBackup="false": Android backups would restore the saved login without its encryption key (SecureStorage).
+         usesCleartextTraffic="true": lets the emulator call the API over plain http://10.0.2.2:5080 while developing.
+         Remove it (and use https) for a real deployment. -->
+    <application android:allowBackup="false"
+                 android:usesCleartextTraffic="true"
+                 android:icon="@mipmap/appicon"
+                 android:roundIcon="@mipmap/appicon_round"
+                 android:supportsRtl="true"></application>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+</manifest>

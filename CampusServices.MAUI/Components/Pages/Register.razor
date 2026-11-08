@@ -1,0 +1,65 @@
+@page "/register"
+@inject AuthService Auth
+@inject NavigationManager Navigation
+
+<div class="card narrow">
+    <h1>Register</h1>
+    <p class="hint">Registration is for students. Staff accounts are created by the administrator.</p>
+
+    <EditForm Model="model" OnValidSubmit="RegisterAsync">
+        <DataAnnotationsValidator />
+
+        <div class="field">
+            <label>Full name</label>
+            <InputText @bind-Value="model.FullName" />
+            <ValidationMessage For="() => model.FullName" />
+        </div>
+
+        <div class="field">
+            <label>Email</label>
+            <InputText @bind-Value="model.Email" />
+            <ValidationMessage For="() => model.Email" />
+        </div>
+
+        <div class="field">
+            <label>Password</label>
+            <InputText type="password" @bind-Value="model.Password" />
+            <ValidationMessage For="() => model.Password" />
+            <span class="hint">At least 6 characters with a capital letter, a number and a symbol.</span>
+        </div>
+
+        @if (errorMessage != null)
+        {
+            <p class="error">@errorMessage</p>
+        }
+
+        <button type="submit" class="btn" disabled="@isBusy">@(isBusy ? "Please wait..." : "Create account")</button>
+    </EditForm>
+
+    <p class="hint">Already have an account? <a href="login">Login</a></p>
+</div>
+
+@code {
+    private RegisterDto model = new RegisterDto();
+    private string? errorMessage;
+    private bool isBusy;
+
+    private async Task RegisterAsync()
+    {
+        isBusy = true;
+        errorMessage = null;
+
+        try
+        {
+            // The API creates the account and logs us in. New accounts are always students.
+            await Auth.RegisterAsync(model);
+            Navigation.NavigateTo("student");
+        }
+        catch (ApiException ex)
+        {
+            errorMessage = ex.Message;
+        }
+
+        isBusy = false;
+    }
+}

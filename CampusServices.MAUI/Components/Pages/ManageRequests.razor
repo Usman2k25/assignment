@@ -1,0 +1,240 @@
+@page "/staff/requests"
+@attribute [Authorize(Roles = Roles.Staff)]
+@inject ApiClient Api
+
+<h1>Manage Requests</h1>
+
+@if (errorMessage != null)
+{
+    <p class="error">@errorMessage</p>
+}
+@if (successMessage != null)
+{
+    <p class="success">@successMessage</p>
+}
+
+@if (requests == null)
+{
+    @if (errorMessage == null)
+    {
+        <p>Loading...</p>
+    }
+}
+else
+{
+    <div class="toolbar">
+        <label>Show:</label>
+        <select @bind="statusFilter">
+            <option value="All">All requests</option>
+            @foreach (var status in Enum.GetValues<RequestStatus>())
+            {
+                <option value="@status">@status</option>
+            }
+        </select>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Student</th>
+                <th>Status</th>
+                <th>Assigned to</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in GetFilteredRequests())
+            {
+                <tr class="@(selected?.Id == item.Id ? "selected" : "")">
+                    <td>@item.Id</td>
+                    <td>@item.Title</td>
+                    <td>@item.CategoryName</td>
+                    <td>@item.StudentName</td>
+                    <td><StatusBadge Status="item.Status" /></td>
+                    <td>@(item.AssignedToName ?? "-")</td>
+                    <td>
+                        <button class="btn small" @onclick="() => SelectRequest(item)">Manage</button>
+                        <a href="requests/@item.Id">View</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @if (selected != null)
+    {
+        <div class="card">
+            <h2>Request #@selected.Id &ndash; @selected.Title</h2>
+            <p class="description">@selected.Description</p>
+            <p>
+                <strong>Student:</strong> @selected.StudentName &nbsp;
+                <strong>Category:</strong> @selected.CategoryName &nbsp;
+                <strong>Status:</strong> <StatusBadge Status="selected.Status" />
+            </p>
+
+            <h3>Assign to a staff member</h3>
+            @if (CanAssign())
+            {
+                <div class="row">
+                    <select @bind="selectedStaffId">
+                        <option value="">-- Select staff member --</option>
+                        @foreach (var person in staff)
+                        {
+                            <option value="@person.Id">@person.FullName</option>
+                        }
+                    </select>
+                    <button class="btn" @onclick="AssignAsync" disabled="@(selectedStaffId == "")">Assign</button>
+                </div>
+            }
+            else
+            {
+                <p class="hint">A request that is @selected.Status can no longer be assigned.</p>
+            }
+
+            <h3>Change status</h3>
+            @if (nextStatuses.Count == 0)
+            {
+                <p class="hint">This request is @selected.Status, so its status can no longer change.</p>
+            }
+            else
+            {
+                <div class="row">
+                    <select @bind="newStatus">
+                        <option value="">-- Select new status --</option>
+                        @foreach (var status in nextStatuses)
+                        {
+                            <option value="@status">@status</option>
+                        }
+                    </select>
+                    <button class="btn" @onclick="ChangeStatusAsync" disabled="@(newStatus == "")">Update status</button>
+                </div>
+            }
+        </div>
+    }
+}
+
+@code {
+    private List<ServiceRequestDto>? requests;
+    private List<StaffMemberDto> staff = new List<StaffMemberDto>();
+
+    private string statusFilter = "All";
+    private ServiceRequestDto? selected;
+    private string selectedStaffId = "";
+    private string newStatus = "";
+    private List<RequestStatus> nextStatuses = new List<RequestStatus>();
+
+    private string? errorMessage;
+    private string? successMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            requests = await Api.GetRequestsAsync();
+            staff = await Api.GetStaffAsync();
+        }
+        catch (ApiException ex)
+        {
+            errorMessage = ex.Message;
+        }
+    }
+
+    private List<ServiceRequestDto> GetFilteredRequests()
+    {
+        if (statusFilter == "All")
+        {
+            return requests!;
+        }
+
+        var result = new List<ServiceRequestDto>();
+        foreach (var item in requests!)
+        {
+            if (item.Status.ToString() == statusFilter)
+            {
+                result.Add(item);
+            }
+        }
+        return result;
+    }
+
+    private void SelectRequest(ServiceRequestDto item)
+    {
+        selected = item;
+        selectedStaffId = item.AssignedToId ?? "";
+        newStatus = "";
+        successMessage = null;
+        errorMessage = null;
+
+        // The allowed next statuses come from the same rule table the API uses (StatusRules in the Domain).
+        // "Assigned" is left out because it is set with the Assign button.
+        nextStatuses = new List<RequestStatus>();
+        foreach (var status in StatusRules.GetNextStatuses(item.Status))
+        {
+            if (status != RequestStatus.Assigned)
+            {
+                nextStatuses.Add(status);
+            }
+        }
+    }
+
+    private bool CanAssign()
+    {
+        return selected!.Status == RequestStatus.Pending || selected.Status == RequestStatus.Assigned;
+    }
+
+    private async Task AssignAsync()
+    {
+        errorMessage = null;
+        successMessage = null;
+
+        try
+        {
+            var dto = new AssignRequestDto { StaffId = selectedStaffId };
+            var updated = await Api.AssignAsync(selected!.Id, dto);
+
+            ReplaceInList(updated);
+            successMessage = "Request #" + updated.Id + " was assigned to " + updated.AssignedToName + ".";
+        }
+        catch (ApiException ex)
+        {
+            errorMessage = ex.Message;
+        }
+    }
+
+    private async Task ChangeStatusAsync()
+    {
+        errorMessage = null;
+        successMessage = null;
+
+        try
+        {
+            var dto = new ChangeStatusDto { Status = Enum.Parse<RequestStatus>(newStatus) };
+            var updated = await Api.ChangeStatusAsync(selected!.Id, dto);
+
+            ReplaceInList(updated);
+            successMessage = "Request #" + updated.Id + " is now " + updated.Status + ".";
+        }
+        catch (ApiException ex)
+        {
+            // For example the API says 400 if the change is not allowed.
+            errorMessage = ex.Message;
+        }
+    }
+
+    // Put the updated request into the table and refresh the panel.
+    private void ReplaceInList(ServiceRequestDto updated)
+    {
+        var index = requests!.FindIndex(r => r.Id == updated.Id);
+        if (index >= 0)
+        {
+            requests[index] = updated;
+        }
+
+        var message = successMessage;
+        SelectRequest(updated);
+        successMessage = message;
+    }
+}

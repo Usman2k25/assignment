@@ -1,0 +1,63 @@
+@page "/student/requests"
+@attribute [Authorize(Roles = Roles.Student)]
+@inject ApiClient Api
+
+<h1>My Requests</h1>
+
+@if (errorMessage != null)
+{
+    <p class="error">@errorMessage</p>
+}
+else if (requests == null)
+{
+    <p>Loading...</p>
+}
+else if (requests.Count == 0)
+{
+    <p>You have not created any requests yet. <a href="student/create">Create one now</a>.</p>
+}
+else
+{
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var request in requests)
+            {
+                <tr>
+                    <td>@request.Id</td>
+                    <td>@request.Title</td>
+                    <td>@request.CategoryName</td>
+                    <td><StatusBadge Status="request.Status" /></td>
+                    <td>@request.CreatedAt.ToLocalTime().ToString("g")</td>
+                    <td><a href="requests/@request.Id">Details</a></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<ServiceRequestDto>? requests;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            requests = await Api.GetRequestsAsync();
+        }
+        catch (ApiException ex)
+        {
+            errorMessage = ex.Message;
+        }
+    }
+}

@@ -1,0 +1,7 @@
+@* A small coloured label for a request status. The CSS class is "status-Pending", "status-InProgress", ... *@
+<span class="badge status-@Status">@Status</span>
+
+@code {
+    [Parameter]
+    public RequestStatus Status { get; set; }
+}

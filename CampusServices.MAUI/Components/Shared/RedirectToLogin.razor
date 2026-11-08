@@ -1,0 +1,9 @@
+@inject NavigationManager Navigation
+
+@code {
+    // Shown instead of a page when nobody is logged in: it simply sends the user to the login page.
+    protected override void OnInitialized()
+    {
+        Navigation.NavigateTo("login");
+    }
+}

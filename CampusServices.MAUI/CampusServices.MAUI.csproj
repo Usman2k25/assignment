@@ -1,0 +1,60 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+    <PropertyGroup>
+        <!-- Android always. Windows only when you build on Windows.
+             iOS / Mac Catalyst were removed because they need a Mac to build. -->
+        <TargetFrameworks>net10.0-android</TargetFrameworks>
+        <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net10.0-windows10.0.19041.0</TargetFrameworks>
+
+        <OutputType>Exe</OutputType>
+        <RootNamespace>CampusServices.MAUI</RootNamespace>
+        <UseMaui>true</UseMaui>
+        <SingleProject>true</SingleProject>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <EnableDefaultCssItems>false</EnableDefaultCssItems>
+        <Nullable>enable</Nullable>
+
+        <MauiXamlInflator>SourceGen</MauiXamlInflator>
+
+        <!-- Display name and app identifier -->
+        <ApplicationTitle>Campus Services</ApplicationTitle>
+        <ApplicationId>com.campusservices.app</ApplicationId>
+
+        <!-- Versions -->
+        <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+        <ApplicationVersion>1</ApplicationVersion>
+
+        <!-- Windows: run as a normal (unpackaged) desktop app. -->
+        <WindowsPackageType>None</WindowsPackageType>
+
+        <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">24.0</SupportedOSPlatformVersion>
+        <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
+        <TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <!-- App icon, splash screen, fonts -->
+        <MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#1F4E79" />
+        <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#1F4E79" BaseSize="128,128" />
+        <MauiFont Include="Resources\Fonts\*" />
+        <MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Maui" Version="$(MauiVersion)" />
+        <!-- AuthorizeView, [Authorize] and AuthenticationStateProvider in Blazor -->
+        <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="10.0.14" />
+        <!-- AddHttpClient<T>() = the typed HttpClient -->
+        <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.14" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <!-- The app uses the DTOs from Application and the roles/status from Domain.
+             It never touches the database: all data comes from the API over HTTP. -->
+        <ProjectReference Include="..\CampusServices.Domain\CampusServices.Domain.csproj" />
+        <ProjectReference Include="..\CampusServices.Application\CampusServices.Application.csproj" />
+    </ItemGroup>
+
+</Project>

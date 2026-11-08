@@ -1,0 +1,91 @@
+@page "/student/create"
+@attribute [Authorize(Roles = Roles.Student)]
+@inject ApiClient Api
+@inject NavigationManager Navigation
+
+<h1>Create a Request</h1>
+
+@if (categories == null && errorMessage == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <div class="card">
+        <EditForm Model="model" OnValidSubmit="SubmitAsync">
+            <DataAnnotationsValidator />
+
+            <div class="field">
+                <label>Category</label>
+                <InputSelect @bind-Value="model.CategoryId">
+                    <option value="0">-- Select a category --</option>
+                    @if (categories != null)
+                    {
+                        @foreach (var category in categories)
+                        {
+                            <option value="@category.Id">@category.Name</option>
+                        }
+                    }
+                </InputSelect>
+                <ValidationMessage For="() => model.CategoryId" />
+            </div>
+
+            <div class="field">
+                <label>Title</label>
+                <InputText @bind-Value="model.Title" />
+                <ValidationMessage For="() => model.Title" />
+            </div>
+
+            <div class="field">
+                <label>Description</label>
+                <InputTextArea @bind-Value="model.Description" rows="5" />
+                <ValidationMessage For="() => model.Description" />
+            </div>
+
+            @if (errorMessage != null)
+            {
+                <p class="error">@errorMessage</p>
+            }
+
+            <button type="submit" class="btn" disabled="@isBusy">@(isBusy ? "Sending..." : "Submit request")</button>
+            <a class="btn light" href="student">Cancel</a>
+        </EditForm>
+    </div>
+}
+
+@code {
+    private CreateRequestDto model = new CreateRequestDto();
+    private List<CategoryDto>? categories;
+    private string? errorMessage;
+    private bool isBusy;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            categories = await Api.GetCategoriesAsync();
+        }
+        catch (ApiException ex)
+        {
+            errorMessage = ex.Message;
+        }
+    }
+
+    private async Task SubmitAsync()
+    {
+        isBusy = true;
+        errorMessage = null;
+
+        try
+        {
+            var created = await Api.CreateRequestAsync(model);
+            Navigation.NavigateTo("requests/" + created.Id);
+        }
+        catch (ApiException ex)
+        {
+            errorMessage = ex.Message;
+        }
+
+        isBusy = false;
+    }
+}

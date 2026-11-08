@@ -1,0 +1,79 @@
+@page "/"
+@page "/login"
+@inject AuthService Auth
+@inject NavigationManager Navigation
+
+<div class="card narrow">
+    <h1>Login</h1>
+
+    <EditForm Model="model" OnValidSubmit="LoginAsync">
+        <DataAnnotationsValidator />
+
+        <div class="field">
+            <label>Email</label>
+            <InputText @bind-Value="model.Email" />
+            <ValidationMessage For="() => model.Email" />
+        </div>
+
+        <div class="field">
+            <label>Password</label>
+            <InputText type="password" @bind-Value="model.Password" />
+            <ValidationMessage For="() => model.Password" />
+        </div>
+
+        @if (errorMessage != null)
+        {
+            <p class="error">@errorMessage</p>
+        }
+
+        <button type="submit" class="btn" disabled="@isBusy">@(isBusy ? "Please wait..." : "Login")</button>
+    </EditForm>
+
+    <p class="hint">New student? <a href="register">Create an account</a></p>
+</div>
+
+@code {
+    private LoginDto model = new LoginDto();
+    private string? errorMessage;
+    private bool isBusy;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Already logged in? Go straight to the right dashboard.
+        var session = await Auth.GetSessionAsync();
+        if (session != null)
+        {
+            GoToDashboard(session.Role);
+        }
+    }
+
+    private async Task LoginAsync()
+    {
+        isBusy = true;
+        errorMessage = null;
+
+        try
+        {
+            var session = await Auth.LoginAsync(model);
+            GoToDashboard(session.Role);
+        }
+        catch (ApiException ex)
+        {
+            errorMessage = ex.Message;
+        }
+
+        isBusy = false;
+    }
+
+    private void GoToDashboard(string role)
+    {
+        if (role == Roles.Staff)
+        {
+            Navigation.NavigateTo("staff");
+        }
+        else
+        {
+            Navigation.NavigateTo("student");
+        }
+    }
+}

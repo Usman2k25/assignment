@@ -1,0 +1,108 @@
+@page "/requests/{Id:int}"
+@attribute [Authorize]
+@inject ApiClient Api
+
+<h1>Request Details</h1>
+
+@if (errorMessage != null)
+{
+    <p class="error">@errorMessage</p>
+}
+else if (request == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <div class="card">
+        <h2>#@request.Id &ndash; @request.Title</h2>
+
+        @* Progress: the steps up to the current status are highlighted. *@
+        @if (request.Status == RequestStatus.Rejected)
+        {
+            <p><StatusBadge Status="request.Status" /> This request was rejected.</p>
+        }
+        else
+        {
+            <ol class="steps">
+                @foreach (var step in steps)
+                {
+                    <li class="@StepClass(step)">@step</li>
+                }
+            </ol>
+        }
+
+        <p class="description">@request.Description</p>
+
+        <dl>
+            <dt>Status</dt>
+            <dd><StatusBadge Status="request.Status" /></dd>
+
+            <dt>Category</dt>
+            <dd>@request.CategoryName</dd>
+
+            <dt>Requested by</dt>
+            <dd>@request.StudentName</dd>
+
+            <dt>Assigned to</dt>
+            <dd>@(request.AssignedToName ?? "Not assigned yet")</dd>
+
+            <dt>Created</dt>
+            <dd>@request.CreatedAt.ToLocalTime().ToString("g")</dd>
+
+            <dt>Last update</dt>
+            <dd>@(request.UpdatedAt == null ? "-" : request.UpdatedAt.Value.ToLocalTime().ToString("g"))</dd>
+        </dl>
+    </div>
+}
+
+<AuthorizeView Roles="@Roles.Student" Context="studentContext">
+    <a class="btn light" href="student/requests">Back to my requests</a>
+</AuthorizeView>
+<AuthorizeView Roles="@Roles.Staff" Context="staffContext">
+    <a class="btn light" href="staff/requests">Back to manage requests</a>
+</AuthorizeView>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private ServiceRequestDto? request;
+    private string? errorMessage;
+
+    // The normal path of a request. (Rejected is shown separately above.)
+    private readonly RequestStatus[] steps =
+    {
+        RequestStatus.Pending,
+        RequestStatus.Assigned,
+        RequestStatus.InProgress,
+        RequestStatus.Resolved
+    };
+
+    protected override async Task OnParametersSetAsync()
+    {
+        request = null;
+        errorMessage = null;
+
+        try
+        {
+            request = await Api.GetRequestAsync(Id);
+        }
+        catch (ApiException ex)
+        {
+            // For example 403 when a student opens another student's request, or 404.
+            errorMessage = ex.Message;
+        }
+    }
+
+    // The enum values are in order (Pending=0, Assigned=1, InProgress=2, Resolved=3),
+    // so a step is "done" when its number is not bigger than the current status number.
+    private string StepClass(RequestStatus step)
+    {
+        if ((int)step <= (int)request!.Status)
+        {
+            return "done";
+        }
+        return "";
+    }
+}

@@ -1,0 +1,296 @@
+/* Simple styles for the whole app. No CSS framework. */
+
+html, body {
+    margin: 0;
+    font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
+    background: #f3f5f8;
+    color: #1f2933;
+}
+
+a {
+    color: #1f4e79;
+}
+
+h1 {
+    margin-top: 0;
+}
+
+h1:focus {
+    outline: none;
+}
+
+/* ---------- Layout ---------- */
+
+.content {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 1.2rem;
+}
+
+.navbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem;
+    background: #1f4e79;
+    padding: 0.7rem 1.2rem;
+}
+
+.navbar .brand {
+    color: #fff;
+    font-weight: bold;
+    font-size: 1.1rem;
+    margin-right: 1rem;
+}
+
+.navbar a {
+    color: #dce8f5;
+    text-decoration: none;
+    padding: 0.2rem 0.1rem;
+    border-bottom: 2px solid transparent;
+}
+
+.navbar a.active {
+    color: #fff;
+    border-bottom-color: #fff;
+}
+
+.navbar .spacer {
+    flex: 1;
+}
+
+.navbar .who {
+    color: #fff;
+}
+
+/* ---------- Cards, forms, buttons ---------- */
+
+.card {
+    background: #fff;
+    border: 1px solid #d9dee5;
+    border-radius: 6px;
+    padding: 1.2rem;
+    margin: 1rem 0;
+}
+
+.card.narrow {
+    max-width: 420px;
+    margin: 2rem auto;
+}
+
+.field {
+    margin-bottom: 1rem;
+}
+
+.field label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+input, select, textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.5rem;
+    border: 1px solid #b8c0cc;
+    border-radius: 4px;
+    font: inherit;
+}
+
+.row {
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+}
+
+.row select {
+    max-width: 320px;
+}
+
+.btn {
+    display: inline-block;
+    background: #1f4e79;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 0.5rem 1rem;
+    font: inherit;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.btn.light {
+    background: #e3e8ee;
+    color: #1f2933;
+}
+
+.btn.small {
+    padding: 0.2rem 0.6rem;
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.actions {
+    display: flex;
+    gap: 0.6rem;
+    margin-top: 1.5rem;
+}
+
+.toolbar {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.8rem;
+}
+
+.toolbar select {
+    width: auto;
+}
+
+/* ---------- Messages ---------- */
+
+.error, .validation-message {
+    color: #b42318;
+}
+
+.success {
+    color: #1a7f37;
+}
+
+.hint {
+    color: #667085;
+    font-size: 0.9rem;
+}
+
+.invalid {
+    outline: 1px solid #b42318;
+}
+
+/* ---------- Table ---------- */
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border: 1px solid #d9dee5;
+}
+
+th, td {
+    text-align: left;
+    padding: 0.55rem 0.7rem;
+    border-bottom: 1px solid #e6eaf0;
+}
+
+th {
+    background: #eef2f6;
+}
+
+tr.selected {
+    background: #eaf3fb;
+}
+
+/* ---------- Status badges ---------- */
+
+.badge {
+    display: inline-block;
+    padding: 0.1rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.status-Pending    { background: #fff1cc; color: #8a5a00; }
+.status-Assigned   { background: #dbeafe; color: #1e40af; }
+.status-InProgress { background: #e0e7ff; color: #3730a3; }
+.status-Resolved   { background: #d6f5e0; color: #1a7f37; }
+.status-Rejected   { background: #fde2e1; color: #b42318; }
+
+/* ---------- Dashboard boxes ---------- */
+
+.summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+}
+
+.summary-box {
+    background: #fff;
+    border: 1px solid #d9dee5;
+    border-radius: 6px;
+    padding: 0.8rem 1.2rem;
+    min-width: 110px;
+    text-align: center;
+}
+
+.summary-box .number {
+    display: block;
+    font-size: 1.8rem;
+    font-weight: bold;
+}
+
+/* ---------- Request details ---------- */
+
+.description {
+    white-space: pre-wrap;
+}
+
+dl {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 0.4rem 1rem;
+}
+
+dt {
+    font-weight: 600;
+}
+
+dd {
+    margin: 0;
+}
+
+.steps {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    gap: 0.5rem;
+}
+
+.steps li {
+    flex: 1;
+    text-align: center;
+    padding: 0.4rem;
+    border-radius: 4px;
+    background: #e3e8ee;
+    color: #667085;
+}
+
+.steps li.done {
+    background: #1f4e79;
+    color: #fff;
+}
+
+/* ---------- Blazor error bar (required by the template) ---------- */
+
+#blazor-error-ui {
+    color-scheme: light only;
+    background: lightyellow;
+    bottom: 0;
+    box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
+    box-sizing: border-box;
+    display: none;
+    left: 0;
+    padding: 0.6rem 1.25rem 0.7rem 1.25rem;
+    position: fixed;
+    width: 100%;
+    z-index: 1000;
+}
+
+#blazor-error-ui .dismiss {
+    cursor: pointer;
+    position: absolute;
+    right: 0.75rem;
+    top: 0.5rem;
+}

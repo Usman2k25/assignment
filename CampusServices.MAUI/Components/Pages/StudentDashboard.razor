@@ -1,0 +1,70 @@
+@page "/student"
+@attribute [Authorize(Roles = Roles.Student)]
+@inject ApiClient Api
+
+<h1>Student Dashboard</h1>
+
+<AuthorizeView>
+    <p>Welcome, <strong>@context.User.Identity?.Name</strong>.</p>
+</AuthorizeView>
+
+@if (errorMessage != null)
+{
+    <p class="error">@errorMessage</p>
+}
+else if (requests == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <div class="summary">
+        <div class="summary-box">
+            <span class="number">@requests.Count</span>
+            <span>Total requests</span>
+        </div>
+
+        @foreach (var status in Enum.GetValues<RequestStatus>())
+        {
+            <div class="summary-box">
+                <span class="number">@CountWithStatus(status)</span>
+                <StatusBadge Status="status" />
+            </div>
+        }
+    </div>
+}
+
+<p class="actions">
+    <a class="btn" href="student/create">Create a new request</a>
+    <a class="btn light" href="student/requests">View my requests</a>
+</p>
+
+@code {
+    private List<ServiceRequestDto>? requests;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            requests = await Api.GetRequestsAsync();
+        }
+        catch (ApiException ex)
+        {
+            errorMessage = ex.Message;
+        }
+    }
+
+    private int CountWithStatus(RequestStatus status)
+    {
+        int count = 0;
+        foreach (var request in requests!)
+        {
+            if (request.Status == status)
+            {
+                count++;
+            }
+        }
+        return count;
+    }
+}

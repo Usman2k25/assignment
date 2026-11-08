@@ -1,0 +1,39 @@
+﻿@inject AuthService Auth
+@inject NavigationManager Navigation
+
+<header class="navbar">
+    <span class="brand">Campus Services</span>
+
+    <AuthorizeView>
+        <Authorized>
+            @* Which links are shown depends on the role. This is only for convenience:
+               the API still checks the role on every request. *@
+            <AuthorizeView Roles="@Roles.Student" Context="studentContext">
+                <NavLink href="student" Match="NavLinkMatch.All">Dashboard</NavLink>
+                <NavLink href="student/create">New Request</NavLink>
+                <NavLink href="student/requests">My Requests</NavLink>
+            </AuthorizeView>
+
+            <AuthorizeView Roles="@Roles.Staff" Context="staffContext">
+                <NavLink href="staff" Match="NavLinkMatch.All">Dashboard</NavLink>
+                <NavLink href="staff/requests">Manage Requests</NavLink>
+            </AuthorizeView>
+
+            <span class="spacer"></span>
+            <span class="who">@context.User.Identity?.Name</span>
+            <button class="btn small light" @onclick="LogoutAsync">Logout</button>
+        </Authorized>
+        <NotAuthorized>
+            <NavLink href="login">Login</NavLink>
+            <NavLink href="register">Register</NavLink>
+        </NotAuthorized>
+    </AuthorizeView>
+</header>
+
+@code {
+    private async Task LogoutAsync()
+    {
+        await Auth.LogoutAsync();
+        Navigation.NavigateTo("login");
+    }
+}
